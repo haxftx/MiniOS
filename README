@@ -1,0 +1,98 @@
+MiniOS - sistem de operare care are implementat modul pentru gestiunea
+proceselor si memoriei.
+add <mem_size_in_bytes> <exec_time_in_ms> <priority> - adaugare proces in coada
+de asteptare
+get <PID> - determinare starii unui proces
+push <PID> <4_signed_bytes_data> - salvarea datelor pe stiva
+pop <PID> - stergerea datelor de pe stiva
+print stack <PID> - afisarea stivei unui proces
+print waiting - afisarea cozii de asteptare
+print finished - afisarea cozii cu procese terminate
+run <număr_unități_timp> - executare unui  numar de unitati de timp
+finish - termianrea executii tuturor proceselor
+
+Implementarea:
+Am inceput de la aceea ca pidul procesului sa fie 0 si prima adresa a sa din
+memorie la fel 0. Am creat 2 liste(sortate crescator) in care tineam pidurile
+pentru refolosire si blocurile de memorie elimberate in urma rularii complete a
+unui proces.
+Am creat sitemul care avea procesul Idle, un proces ce ruleaza, si 2 cozi
+in care erau procesele in asteptare si cele finisate.
+Cat am citit din fisier am executat funtiile respective.
+Funtia add: adauga un proces in sistem.
+    Citesc datele depsre un proces: dimensiunea memeorie, prioritate si timpul
+    de executie, daca exista piduri libere atribui procesului pidul respectiv,
+    daca nu cel mai mare pid + 1;
+    Daca nu exista nici un proces, resetez memoria de la 0.
+    Caut in lista de memorie libera spatiu, va intoarce -1 daca nu exista,
+    verific daca are spatiu indeajus pentru alocarea noului proces, daca nu
+    exista fac defragemtare, iar daca nici dupa asta nu exista la fel spatiu
+    afisez mesajul respectiv si realoc pidul ce trebuia folosit.
+    Atribui procesului datele sale si afisez mesajul de creeare, apoi verific
+    daca nu exista procese in sistem, il introduc in stare de rulare, altfel
+    il introduc in coada de asteptare sortat dupa prioritate, pid si timp de 
+    executie.
+Pentru funtia push, pop si get am folosit o funtie de cautare a procesului:
+    Functia cauta in tot sistemul procesul cu pidul dat, funtia are un paramtru
+    l care imi indica ce trebuie sa fac cu procesul(0 - get, 1 - fac push sau
+    pop procesului respectiv, 5 - printez stack-l)
+    In momentul cand am gasit procesul dupa paramtrul l lucrez mai departe cu
+    el. Daca nu exista procesul in sistem afisez mesajul respectiv, ca nu s-a
+    gasit.
+Funtia push_pop:
+    Introduce sau extrage de pe stiva unui proces daca mai are memorie sau
+    exista elemente.
+Functia prelucrare_proces:
+    Imi afiseaza un proces in dependeta de parametrul stare(1 - ruleaza, 2 -
+    este in coada de asteptare, 3 - procesul si-a finisat executia)
+    Daca trebuie sa afisez starea o afisez, iar daca trebuie sa-i afisez
+    stiva, verifica daca nu s-a finisat procesul si afisez.
+Functia defragemtare:
+    Am calculat memoria fiecarui proces si la final am returnat ultima adresa
+    disponibila din sistem.
+Functia print:
+    Daca am de afisat coada de asteptare sau de procese teminate, afisez
+    coada si cu procesele existente, iar daca am de afisat stiva unui proces
+    apelez functia find_proces.
+Functia run:
+    Am citit timpul de rulare a functiei, dupa am alocat variabilele auxiliare
+    folosite in functie(pentru a rula valgrind mai repede),
+    Cat timp exista timp de rulat si procese in sistem:
+        Daca procesul mai are de rulat din cuanta, atualizez timpul de executie
+        ,timpul de rulare si atribui rularii din cuanta 0, apoi schimb procesul
+        Altfel daca procesul are de rulat un timp de executie mai mic de cat
+        cuanta sau timpul de rulare actualizez timpul si atribui 0 la timpul
+        de executie a procesului. Daca timpul de executie este mai mare de cat
+        minumul dintre cuanta sau timpul de rulare, atualizez datele si schimb
+        procesul de rulare.
+    Schimbul procesului de rulare:
+        Extrag procesul din starea de rulare intr-o coada auxiliara si extrag,
+        daca exista procese in coada de asteptare pe primul in stare de rulare,
+        altfel il introduc inapoi pe cel din coada auxiliara, dupa introduc 
+        procesul din coada auxiliara in coada de asteptare sortat.
+    Finisare unui proces:
+        Introduc in lista de piduri libere pidul procesului si un bloc de
+        memeorie in lista de memorie libera.
+        Introduc procesul din rulare in coada de procese terminate si in starea
+        de rulare extrag primul element din coada de asteptare daca exista,
+        altfel bag procesul Idle in rulare.
+Functia finish:
+    Daca nu exista nici un proces in sistem afisez timpul ramas de rulare 0,
+    altfel calculez timpul ramas de rulare astfel: timpul devine timpul de
+    rulare a procesului din running + timpul ramas a tuturor proceselor din
+    coada de asteptare, prin aflarea timpului extrag fiecare proces si il
+    introduc in coada de procese teminate, iar la sfarsit bag procesul Idle
+    in stare de rulare, la sfarsit afisez timpul ramas de rulat a proceselor.
+Funtii auxiliare:
+    min -  returneaza minimul dintre 2 numere intregi.
+    cmp - compara 2 piduri pentru sortarea listei de piduri.
+    comp_pr - compara 2 procese dupa prioritate, pid si timp de executie.
+    comp_mem - compara 2 blocuri de memorie pentru sortarea listei de memorie.
+    print_proces - scrie in fisier datele aferente unui proces.
+    Aloc_pid - adauga sortat in lista de piduri, pidul dat.
+    new_pid - returneaza cel mai mic pid din lista de piduri.
+    AlocMem - adauga sortat in lista de memorie libera un bloc cu datele date.
+    find_mem - returneaza prima adresa libera in lista de memorie libera pentru
+               dimensiunea data, intoarce -1 daca nu exista memorie.
+    funtiile de initializare cozilor, stivelor si sistemului si de distrugere a
+    listelor, cozilor, stivelor si sistemului.
